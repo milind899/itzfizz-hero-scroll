@@ -199,23 +199,26 @@ export default function Home() {
       .to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.in" }, 0.4);
   };
 
-  const trailParticlesRef = useRef<{ x: number; y: number; alpha: number; radius: number; vx: number; vy: number }[]>([]);
+  const trailPointsRef = useRef<{ x: number; y: number }[]>([]);
+  const trailSparklesRef = useRef<{ x: number; y: number; alpha: number; radius: number; vx: number; vy: number }[]>([]);
 
   const handleNightHover = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!trailCanvasRef.current) return;
-    const canvas = trailCanvasRef.current;
-    const rect = canvas.getBoundingClientRect();
+    const rect = trailCanvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    for (let i = 0; i < 3; i++) {
-      trailParticlesRef.current.push({
-        x,
-        y,
-        alpha: 0.7 + Math.random() * 0.3,
-        radius: 3 + Math.random() * 5,
-        vx: (Math.random() - 0.5) * 1.2,
-        vy: (Math.random() - 0.5) * 1.2,
+    trailPointsRef.current.push({ x, y });
+    if (trailPointsRef.current.length > 40) trailPointsRef.current.shift();
+
+    if (Math.random() < 0.35) {
+      trailSparklesRef.current.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: y + (Math.random() - 0.5) * 10,
+        alpha: 1,
+        radius: 1.5 + Math.random() * 2.5,
+        vx: (Math.random() - 0.5) * 2.5,
+        vy: (Math.random() - 0.5) * 2.5 - 1,
       });
     }
   };
@@ -412,25 +415,71 @@ export default function Home() {
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      trailParticlesRef.current = trailParticlesRef.current.filter(p => p.alpha > 0.01);
+      const pts = trailPointsRef.current;
 
-      for (const p of trailParticlesRef.current) {
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        gradient.addColorStop(0, `rgba(255, 215, 0, ${p.alpha})`);
-        gradient.addColorStop(0.4, `rgba(255, 180, 0, ${p.alpha * 0.5})`);
-        gradient.addColorStop(1, `rgba(255, 150, 0, 0)`);
+      if (pts.length >= 3) {
+        const totalPts = pts.length;
 
+        for (let pass = 0; pass < 3; pass++) {
+          const blurSizes = [18, 8, 2];
+          const alphas = [0.12, 0.25, 0.8];
+          const widths = [14, 7, 2.5];
+
+          ctx.save();
+          ctx.shadowBlur = blurSizes[pass];
+          ctx.shadowColor = '#FFD700';
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+
+          for (let i = 1; i < totalPts - 1; i++) {
+            const t = i / totalPts;
+            const lineWidth = widths[pass] * t;
+            const opacity = alphas[pass] * t;
+
+            ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
+            ctx.lineWidth = lineWidth;
+
+            const mx = (pts[i].x + pts[i + 1].x) / 2;
+            const my = (pts[i].y + pts[i + 1].y) / 2;
+            ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(mx, my);
+          }
+          ctx.restore();
+        }
+
+        const head = pts[totalPts - 1];
+        const headGlow = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 12);
+        headGlow.addColorStop(0, 'rgba(255, 255, 200, 1)');
+        headGlow.addColorStop(0.3, 'rgba(255, 215, 0, 0.8)');
+        headGlow.addColorStop(1, 'rgba(255, 150, 0, 0)');
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
+        ctx.arc(head.x, head.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = headGlow;
         ctx.fill();
+      }
 
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.95;
-        p.vy *= 0.95;
-        p.alpha *= 0.88;
-        p.radius *= 0.97;
+      trailSparklesRef.current = trailSparklesRef.current.filter(s => s.alpha > 0.02);
+      for (const s of trailSparklesRef.current) {
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 230, 100, ${s.alpha})`;
+        ctx.fill();
+        ctx.restore();
+
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vy += 0.08;
+        s.alpha *= 0.92;
+        s.radius *= 0.97;
       }
 
       rafId = requestAnimationFrame(loop);
