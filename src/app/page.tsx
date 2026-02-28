@@ -267,6 +267,14 @@ export default function Home() {
                 overwrite: "auto"
               });
             }
+
+            if (headlightRef.current) {
+              gsap.to(headlightRef.current, {
+                opacity: Math.min(speedBoost / 300, 0.85),
+                duration: 0.15,
+                overwrite: "auto"
+              });
+            }
           }
         },
       });
