@@ -199,24 +199,25 @@ export default function Home() {
       .to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.in" }, 0.4);
   };
 
+  const trailParticlesRef = useRef<{ x: number; y: number; alpha: number; radius: number; vx: number; vy: number }[]>([]);
+
   const handleNightHover = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!trailCanvasRef.current) return;
     const canvas = trailCanvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-    ctx.fill();
-
-    setTimeout(() => {
-      ctx.clearRect(x - 6, y - 6, 12, 12);
-    }, 600);
+    for (let i = 0; i < 3; i++) {
+      trailParticlesRef.current.push({
+        x,
+        y,
+        alpha: 0.7 + Math.random() * 0.3,
+        radius: 3 + Math.random() * 5,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
+      });
+    }
   };
 
   // Mouse hover effects removed as requested; stats should only move with scroll
@@ -392,16 +393,54 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (trailCanvasRef.current) {
-      const resize = () => {
-        if (!trailCanvasRef.current) return;
-        trailCanvasRef.current.width = trailCanvasRef.current.offsetWidth;
-        trailCanvasRef.current.height = trailCanvasRef.current.offsetHeight;
-      };
-      resize();
-      window.addEventListener('resize', resize);
-      return () => window.removeEventListener('resize', resize);
-    }
+    const canvas = trailCanvasRef.current;
+    if (!canvas) return;
+
+    const resize = () => {
+      if (!trailCanvasRef.current) return;
+      trailCanvasRef.current.width = trailCanvasRef.current.offsetWidth;
+      trailCanvasRef.current.height = trailCanvasRef.current.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let rafId: number;
+
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      trailParticlesRef.current = trailParticlesRef.current.filter(p => p.alpha > 0.01);
+
+      for (const p of trailParticlesRef.current) {
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        gradient.addColorStop(0, `rgba(255, 215, 0, ${p.alpha})`);
+        gradient.addColorStop(0.4, `rgba(255, 180, 0, ${p.alpha * 0.5})`);
+        gradient.addColorStop(1, `rgba(255, 150, 0, 0)`);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+        p.alpha *= 0.88;
+        p.radius *= 0.97;
+      }
+
+      rafId = requestAnimationFrame(loop);
+    };
+
+    rafId = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
+    };
   }, []);
 
   useEffect(() => {
