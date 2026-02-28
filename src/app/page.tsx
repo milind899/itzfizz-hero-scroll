@@ -279,6 +279,12 @@ export default function Home() {
                 overwrite: "auto"
               });
             }
+          },
+          onScrubComplete: () => {
+            gsap.to(headlightRef.current, { opacity: 0, duration: 0.8, ease: "power2.inOut", overwrite: "auto" });
+            gsap.to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.out", overwrite: "auto" });
+            gsap.to(exhaustRef.current, { opacity: 0, duration: 0.5, ease: "power2.out", overwrite: "auto" });
+            gsap.to(carWrapperRef.current, { scaleX: 1, skewX: 0, duration: 0.6, ease: "elastic.out(1, 0.5)", overwrite: "auto" });
           }
         },
       });
