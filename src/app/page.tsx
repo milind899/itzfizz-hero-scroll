@@ -218,7 +218,7 @@ export default function Home() {
         ease: "back.out(1.7)"
       });
 
-      loadTl.to(carWrapperRef.current, { x: "-20vw", opacity: 1, duration: 1.5, ease: "power3.out" }, "-=0.5");
+      loadTl.to(carWrapperRef.current, { x: "-20vw", opacity: 1, duration: 1.8, ease: "expo.out" }, "-=0.5");
 
       loadTl.to(headlightRef.current, { opacity: 1, duration: 0.1, yoyo: true, repeat: 3 }, "-=0.2");
       loadTl.to(headlightRef.current, { opacity: 0, duration: 1.2, ease: "power2.in" }, "+=0.5");
@@ -229,7 +229,7 @@ export default function Home() {
           trigger: containerRef.current,
           start: "top top",
           end: "+=300%",
-          scrub: 1,
+          scrub: 1.5,
           pin: true,
           pinType: "fixed",
           onUpdate: (self) => {
@@ -238,7 +238,8 @@ export default function Home() {
             gsap.to(carWrapperRef.current, {
               scaleX: 1 + Math.min(speedBoost / 4000, 0.15),
               skewX: -Math.min(self.getVelocity() / 500, 10),
-              duration: 0.3,
+              duration: 0.6,
+              ease: "power3.out",
               overwrite: "auto",
             });
 
@@ -247,7 +248,8 @@ export default function Home() {
                 opacity: Math.min(speedBoost / 600, 1),
                 x: -Math.min(speedBoost / 50, 40),
                 scaleX: 1 + Math.min(speedBoost / 800, 1),
-                duration: 0.2,
+                duration: 0.4,
+                ease: "power2.out",
                 overwrite: "auto"
               });
             }
@@ -263,7 +265,8 @@ export default function Home() {
             if (exhaustRef.current) {
               gsap.to(exhaustRef.current, {
                 opacity: Math.min(speedBoost / 500, 0.7),
-                duration: 0.2,
+                duration: 0.4,
+                ease: "power2.out",
                 overwrite: "auto"
               });
             }
@@ -271,7 +274,8 @@ export default function Home() {
             if (headlightRef.current) {
               gsap.to(headlightRef.current, {
                 opacity: Math.min(speedBoost / 300, 0.85),
-                duration: 0.15,
+                duration: 0.4,
+                ease: "power2.out",
                 overwrite: "auto"
               });
             }
@@ -317,13 +321,13 @@ export default function Home() {
 
       if (statsRefs.current.length > 0) {
         scrollTl.fromTo(statsRefs.current,
-          { y: 150, opacity: 0, scale: 0.8 }, // Start below the screen, invisible
+          { y: 150, opacity: 0, scale: 0.8 },
           {
-            y: 0, // End at original position
-            opacity: 1, // End fully visible
+            y: 0,
+            opacity: 1,
             scale: 1,
-            ease: "none",
-            stagger: 0.1 // Stagger them slightly as they come in
+            ease: "power2.out",
+            stagger: 0.05
           }, 0
         );
       }
