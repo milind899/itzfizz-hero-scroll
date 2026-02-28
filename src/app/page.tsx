@@ -215,7 +215,6 @@ export default function Home() {
           end: "+=300%",
           scrub: 1.5,
           pin: true,
-          pinType: "fixed",
           onUpdate: (self) => {
             const speedBoost = Math.abs(self.getVelocity());
 
@@ -353,34 +352,13 @@ export default function Home() {
 
 
 
-  useEffect(() => {
-    let touchStartY = 0;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const deltaY = touchStartY - e.touches[0].clientY;
-      if (Math.abs(deltaY) > 5) {
-        window.scrollBy(0, deltaY * 0.5);
-        touchStartY = e.touches[0].clientY;
-      }
-    };
-
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-    };
-  }, []);
 
   return (
     <>
       <main className="bg-[#1A1A1A] font-sans selection:bg-[#FFD700] selection:text-black overflow-x-hidden">
 
-        <section ref={containerRef} className="h-screen w-full relative overflow-hidden">
+        <section ref={containerRef} className="h-[100dvh] w-full relative overflow-hidden">
           {/* Night Theme Layer - Base */}
           <div ref={nightAreaRef} className="absolute inset-0 z-0 overflow-hidden">
             <Particles />
