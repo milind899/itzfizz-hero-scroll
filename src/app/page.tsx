@@ -409,7 +409,7 @@ export default function Home() {
               <div className="w-full max-w-[1400px] px-4 md:px-8 flex flex-col items-center justify-center gap-2 md:gap-3">
                 <h1
                   ref={headlineRef}
-                  className="text-[clamp(1.2rem,min(7vw,8vh),10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest uppercase"
+                  className="text-[clamp(2rem,9vw,10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest uppercase"
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
                     textShadow: '0 0 60px rgba(255,215,0,0.15), 0 0 120px rgba(255,215,0,0.05)',
@@ -477,7 +477,7 @@ export default function Home() {
               </div>
               <div className="w-full max-w-[1400px] px-4 md:px-8 flex flex-col items-center justify-center gap-2 md:gap-4">
                 <h1
-                  className="text-[clamp(1.2rem,min(7vw,8vh),10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest text-[#FFD700] uppercase drop-shadow-md"
+                  className="text-[clamp(2rem,9vw,10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest text-[#FFD700] uppercase drop-shadow-md"
                   style={{ fontFamily: "'Montserrat', sans-serif" }}
                 >
                   WELCOME ITZFIZZ
@@ -509,21 +509,21 @@ export default function Home() {
               </div>
             </div>
 
-            <nav className="absolute bottom-[16vh] md:bottom-[12vh] left-0 w-full z-30 pointer-events-none">
+            <nav className="absolute bottom-[6vh] md:bottom-[12vh] left-0 w-full z-30 pointer-events-none">
               <div className="container">
-                <div className="row gx-2 gx-md-3 px-3 px-md-4 pointer-events-auto" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                <div className="row gx-2 gy-3 gx-md-3 gy-lg-0 px-3 px-md-4 pointer-events-auto" style={{ maxWidth: '1200px', margin: '0 auto' }}>
                   {statsData.map((stat, index) => (
                     <div key={index} className="col-6 col-lg-3">
                       <div
                         ref={(el) => { statsRefs.current[index] = el; }}
-                        className={`group w-full rounded-xl md:rounded-2xl lg:rounded-3xl p-3 md:p-5 lg:p-8 shadow-lg flex flex-col justify-center items-center text-center will-change-transform transition-shadow duration-500 hover:shadow-2xl ${stat.color} ${stat.text} ${stat.border || ''}`}
+                        className={`group w-full rounded-xl md:rounded-2xl lg:rounded-3xl p-4 md:p-5 lg:p-8 shadow-lg flex flex-col justify-center items-center text-center will-change-transform transition-shadow duration-500 hover:shadow-2xl ${stat.color} ${stat.text} ${stat.border || ''}`}
                         style={{ transformOrigin: "center bottom", fontFamily: "'Inter', sans-serif" }}
                       >
-                        <h2 className="text-2xl md:text-3xl lg:text-5xl font-extrabold mb-0.5 md:mb-1 lg:mb-2 pointer-events-none tracking-tight transition-transform duration-300 group-hover:scale-105">
+                        <h2 className="text-3xl md:text-3xl lg:text-5xl font-extrabold mb-0.5 md:mb-1 lg:mb-2 pointer-events-none tracking-tight transition-transform duration-300 group-hover:scale-105">
                           <CounterStat numericValue={stat.numericValue} suffix={stat.suffix} />
                         </h2>
                         <div className="w-8 md:w-10 h-[2px] bg-current rounded-full mb-1.5 md:mb-2 lg:mb-3 opacity-20 pointer-events-none"></div>
-                        <p className="font-semibold text-[7px] md:text-[9px] lg:text-[11px] uppercase tracking-wider max-w-[120px] md:max-w-[180px] pointer-events-none leading-relaxed">
+                        <p className="font-semibold text-[9px] md:text-[9px] lg:text-[11px] uppercase tracking-wider max-w-[140px] md:max-w-[180px] pointer-events-none leading-relaxed">
                           {stat.label}
                         </p>
                       </div>
