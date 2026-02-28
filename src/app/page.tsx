@@ -57,10 +57,10 @@ const CarSVG = ({ flameRef, headlightRef }: { flameRef: React.RefObject<SVGPathE
 );
 
 const statsData = [
-  { value: "400ms", label: "AVERAGE TTI LOAD SPEED", color: "bg-[#FFD700]", text: "text-[#1A1A1A]", numericValue: 400, suffix: "ms" },
-  { value: "98/100", label: "LIGHTHOUSE PERFORMANCE", color: "bg-[#1A1A1A]", text: "text-white", numericValue: 98, suffix: "/100" },
-  { value: "60fps", label: "SMOOTH HARDWARE ACCELERATION", color: "bg-white", text: "text-[#1A1A1A]", border: "border-[3px] border-[#1A1A1A]", numericValue: 60, suffix: "fps" },
-  { value: "Zero", label: "LAYOUT REFLOWS DURING SCROLL", color: "bg-[#F5F6F8]", text: "text-[#1A1A1A]", numericValue: 0, suffix: "", isWord: true },
+  { value: "90%", label: "FASTER LOAD TIME VS BENCHMARK", color: "bg-[#FFD700]", text: "text-[#1A1A1A]", numericValue: 90, suffix: "%" },
+  { value: "98%", label: "LIGHTHOUSE PERFORMANCE SCORE", color: "bg-[#1A1A1A]", text: "text-white", numericValue: 98, suffix: "%" },
+  { value: "60%", label: "LESS CPU USAGE DURING SCROLL", color: "bg-white", text: "text-[#1A1A1A]", border: "border-[3px] border-[#1A1A1A]", numericValue: 60, suffix: "%" },
+  { value: "0%", label: "LAYOUT REFLOWS DURING ANIMATION", color: "bg-[#F5F6F8]", text: "text-[#1A1A1A]", numericValue: 0, suffix: "%" },
 ];
 
 const CounterStat = ({ numericValue, suffix, isWord }: { numericValue: number, suffix: string, isWord?: boolean }) => {
@@ -601,21 +601,22 @@ export default function Home() {
 
             <nav className="absolute bottom-[16vh] md:bottom-[12vh] left-0 w-full z-30 pointer-events-none">
               <div className="container">
-                <div className="w-full max-w-[1200px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-4 lg:gap-5 px-3 md:px-4 pointer-events-auto">
+                <div className="row gx-2 gx-md-3 px-3 px-md-4 pointer-events-auto" style={{ maxWidth: '1200px', margin: '0 auto' }}>
                   {statsData.map((stat, index) => (
-                    <div
-                      key={index}
-                      ref={(el) => { statsRefs.current[index] = el; }}
-                      className={`group w-full rounded-xl md:rounded-2xl lg:rounded-3xl p-3 md:p-5 lg:p-8 shadow-lg flex flex-col justify-center items-center text-center will-change-transform transition-shadow duration-500 hover:shadow-2xl ${stat.color} ${stat.text} ${stat.border || ''}`}
-                      style={{ transformOrigin: "center bottom", fontFamily: "'Inter', sans-serif" }}
-                    >
-                      <h2 className="text-2xl md:text-3xl lg:text-5xl font-extrabold mb-0.5 md:mb-1 lg:mb-2 pointer-events-none tracking-tight transition-transform duration-300 group-hover:scale-105">
-                        <CounterStat numericValue={stat.numericValue} suffix={stat.suffix} isWord={stat.isWord} />
-                      </h2>
-                      <div className="w-8 md:w-10 h-[2px] bg-current rounded-full mb-1.5 md:mb-2 lg:mb-3 opacity-20 pointer-events-none"></div>
-                      <p className="font-semibold text-[7px] md:text-[9px] lg:text-[11px] uppercase tracking-wider max-w-[120px] md:max-w-[180px] pointer-events-none leading-relaxed">
-                        {stat.label}
-                      </p>
+                    <div key={index} className="col-6 col-lg-3">
+                      <div
+                        ref={(el) => { statsRefs.current[index] = el; }}
+                        className={`group w-full rounded-xl md:rounded-2xl lg:rounded-3xl p-3 md:p-5 lg:p-8 shadow-lg flex flex-col justify-center items-center text-center will-change-transform transition-shadow duration-500 hover:shadow-2xl ${stat.color} ${stat.text} ${stat.border || ''}`}
+                        style={{ transformOrigin: "center bottom", fontFamily: "'Inter', sans-serif" }}
+                      >
+                        <h2 className="text-2xl md:text-3xl lg:text-5xl font-extrabold mb-0.5 md:mb-1 lg:mb-2 pointer-events-none tracking-tight transition-transform duration-300 group-hover:scale-105">
+                          <CounterStat numericValue={stat.numericValue} suffix={stat.suffix} />
+                        </h2>
+                        <div className="w-8 md:w-10 h-[2px] bg-current rounded-full mb-1.5 md:mb-2 lg:mb-3 opacity-20 pointer-events-none"></div>
+                        <p className="font-semibold text-[7px] md:text-[9px] lg:text-[11px] uppercase tracking-wider max-w-[120px] md:max-w-[180px] pointer-events-none leading-relaxed">
+                          {stat.label}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
