@@ -185,7 +185,7 @@ export default function Home() {
   const gridRef = useRef<HTMLDivElement>(null);
   const decorSvgsRef = useRef<HTMLDivElement>(null);
   const exhaustRef = useRef<HTMLDivElement>(null);
-  const trailCanvasRef = useRef<HTMLCanvasElement>(null);
+
 
   // Easter Egg 1: Press the gas pedal
   const handleCarClick = () => {
@@ -199,31 +199,7 @@ export default function Home() {
       .to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.in" }, 0.4);
   };
 
-  const trailPointsRef = useRef<{ x: number; y: number; time: number }[]>([]);
-  const trailSparklesRef = useRef<{ x: number; y: number; alpha: number; radius: number; vx: number; vy: number }[]>([]);
 
-  const handleNightHover = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!trailCanvasRef.current) return;
-    const rect = trailCanvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    trailPointsRef.current.push({ x, y, time: Date.now() });
-    if (trailPointsRef.current.length > 40) trailPointsRef.current.shift();
-
-    if (Math.random() < 0.35) {
-      trailSparklesRef.current.push({
-        x: x + (Math.random() - 0.5) * 10,
-        y: y + (Math.random() - 0.5) * 10,
-        alpha: 1,
-        radius: 1.5 + Math.random() * 2.5,
-        vx: (Math.random() - 0.5) * 2.5,
-        vy: (Math.random() - 0.5) * 2.5 - 1,
-      });
-    }
-  };
-
-  // Mouse hover effects removed as requested; stats should only move with scroll
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -395,104 +371,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    const canvas = trailCanvasRef.current;
-    if (!canvas) return;
 
-    const resize = () => {
-      if (!trailCanvasRef.current) return;
-      trailCanvasRef.current.width = trailCanvasRef.current.offsetWidth;
-      trailCanvasRef.current.height = trailCanvasRef.current.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let rafId: number;
-
-    const loop = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const now = Date.now();
-      trailPointsRef.current = trailPointsRef.current.filter(p => now - p.time < 600);
-      const pts = trailPointsRef.current;
-
-      if (pts.length >= 3) {
-        const totalPts = pts.length;
-
-        for (let pass = 0; pass < 3; pass++) {
-          const blurSizes = [18, 8, 2];
-          const alphas = [0.12, 0.25, 0.8];
-          const widths = [14, 7, 2.5];
-
-          ctx.save();
-          ctx.shadowBlur = blurSizes[pass];
-          ctx.shadowColor = '#FFD700';
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-
-          ctx.beginPath();
-          ctx.moveTo(pts[0].x, pts[0].y);
-
-          for (let i = 1; i < totalPts - 1; i++) {
-            const t = i / totalPts;
-            const lineWidth = widths[pass] * t;
-            const opacity = alphas[pass] * t;
-
-            ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
-            ctx.lineWidth = lineWidth;
-
-            const mx = (pts[i].x + pts[i + 1].x) / 2;
-            const my = (pts[i].y + pts[i + 1].y) / 2;
-            ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(mx, my);
-          }
-          ctx.restore();
-        }
-
-        const head = pts[totalPts - 1];
-        const headGlow = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 12);
-        headGlow.addColorStop(0, 'rgba(255, 255, 200, 1)');
-        headGlow.addColorStop(0.3, 'rgba(255, 215, 0, 0.8)');
-        headGlow.addColorStop(1, 'rgba(255, 150, 0, 0)');
-        ctx.beginPath();
-        ctx.arc(head.x, head.y, 12, 0, Math.PI * 2);
-        ctx.fillStyle = headGlow;
-        ctx.fill();
-      }
-
-      trailSparklesRef.current = trailSparklesRef.current.filter(s => s.alpha > 0.02);
-      for (const s of trailSparklesRef.current) {
-        ctx.save();
-        ctx.globalAlpha = s.alpha;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 230, 100, ${s.alpha})`;
-        ctx.fill();
-        ctx.restore();
-
-        s.x += s.vx;
-        s.y += s.vy;
-        s.vy += 0.08;
-        s.alpha *= 0.92;
-        s.radius *= 0.97;
-      }
-
-      rafId = requestAnimationFrame(loop);
-    };
-
-    rafId = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
 
   useEffect(() => {
     let touchStartY = 0;
@@ -526,14 +405,8 @@ export default function Home() {
           {/* ===================== NIGHT THEME (Bottom Base Layer) ===================== */}
           <div
             ref={nightAreaRef}
-            onMouseMove={handleNightHover}
             className="absolute inset-0 z-0 overflow-hidden"
           >
-            <canvas
-              ref={trailCanvasRef}
-              className="absolute inset-0 w-full h-full pointer-events-none z-[3]"
-              style={{ mixBlendMode: 'screen' }}
-            />
             {/* Atmospheric Floating Particles */}
             <Particles />
 
