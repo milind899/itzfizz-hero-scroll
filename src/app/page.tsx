@@ -233,12 +233,10 @@ export default function Home() {
       });
 
       gsap.to(headlightRef.current, {
-        opacity: 0.4,
-        duration: 2,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: 2.5
+        opacity: 0,
+        duration: 1.5,
+        delay: 2.2,
+        ease: "power2.in"
       });
 
       const scrollTl = gsap.timeline({
