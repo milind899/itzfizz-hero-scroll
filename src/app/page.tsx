@@ -93,6 +93,30 @@ const CounterStat = ({ numericValue, suffix, isWord }: { numericValue: number, s
   return <span ref={counterRef}>{isWord ? "Zero" : `0${suffix}`}</span>;
 };
 
+const ExhaustSmoke = ({ exhaustRef }: { exhaustRef: React.RefObject<HTMLDivElement | null> }) => (
+  <div
+    ref={exhaustRef}
+    className="absolute pointer-events-none opacity-0"
+    style={{ left: '-30px', top: '50%', transform: 'translateY(-50%)' }}
+  >
+    {[...Array(6)].map((_, i) => (
+      <div
+        key={i}
+        className="absolute rounded-full"
+        style={{
+          width: `${4 + i * 3}px`,
+          height: `${4 + i * 3}px`,
+          left: `${-i * 12}px`,
+          top: `${(i % 2 === 0 ? -1 : 1) * (i * 2)}px`,
+          background: 'rgba(180,180,180,0.3)',
+          filter: `blur(${2 + i}px)`,
+          opacity: 1 - i * 0.15,
+        }}
+      />
+    ))}
+  </div>
+);
+
 // Floating Dust Particles for the Night Sky
 const Particles = () => {
   const [particles, setParticles] = useState<{ width: string, height: string, top: string, left: string, delay: string, duration: string, glow: boolean }[]>([]);
@@ -154,9 +178,14 @@ export default function Home() {
   const scrollPromptRef = useRef<HTMLDivElement>(null);
   const statsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const headlineRef = useRef<HTMLHeadingElement>(null);
+  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const progressRef = useRef<HTMLDivElement>(null);
   const nightAreaRef = useRef<HTMLDivElement>(null);
   const isRevvingRef = useRef(false);
-  const speedLinesRef = useRef<SVGSVGElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const decorSvgsRef = useRef<HTMLDivElement>(null);
+  const exhaustRef = useRef<HTMLDivElement>(null);
+  const trailCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Easter Egg 1: Press the gas pedal
   const handleCarClick = () => {
@@ -170,16 +199,24 @@ export default function Home() {
       .to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.in" }, 0.4);
   };
 
-  // Easter Egg 2: Flashlight in the dark
   const handleNightHover = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!nightAreaRef.current) return;
-    const rect = nightAreaRef.current.getBoundingClientRect();
+    if (!trailCanvasRef.current) return;
+    const canvas = trailCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Update CSS variables for the radial mask
-    nightAreaRef.current.style.setProperty('--spotlight-x', `${x}px`);
-    nightAreaRef.current.style.setProperty('--spotlight-y', `${y}px`);
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.fill();
+
+    setTimeout(() => {
+      ctx.clearRect(x - 6, y - 6, 12, 12);
+    }, 600);
   };
 
   // Mouse hover effects removed as requested; stats should only move with scroll
@@ -190,13 +227,16 @@ export default function Home() {
       gsap.set(statsRefs.current, { y: 40, opacity: 0, scale: 0.9 });
       gsap.set(bandRef.current, { clipPath: "inset(0 100% 0 0)" });
       gsap.set(carWrapperRef.current, { x: "-50vw", opacity: 0 });
+      gsap.set(letterRefs.current, { opacity: 0, y: 30, rotateX: 90 });
 
       const loadTl = gsap.timeline();
 
-      loadTl.fromTo(headlineRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1.5, ease: "power3.out" }
-      );
+      loadTl.to(letterRefs.current, {
+        opacity: 1, y: 0, rotateX: 0,
+        duration: 0.8,
+        stagger: 0.04,
+        ease: "back.out(1.7)"
+      });
 
       loadTl.to(carWrapperRef.current, { x: "-20vw", opacity: 1, duration: 1.5, ease: "power3.out" }, "-=0.5");
 
@@ -206,8 +246,8 @@ export default function Home() {
       statsRefs.current.forEach((el, i) => {
         if (!el) return;
         loadTl.fromTo(el,
-          { y: 40, opacity: 0, scale: 0.9 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" },
+          { y: 150, opacity: 0, scale: 0.9 }, // Changed initial y position to be further down
+          { y: 150, opacity: 0, scale: 0.9, duration: 0 }, // We don't animate them in on load anymore, they wait for scroll
           `-=${i === 0 ? 0.3 : 0.35}`
         );
       });
@@ -257,9 +297,9 @@ export default function Home() {
               }
             }
 
-            if (speedLinesRef.current) {
-              gsap.to(speedLinesRef.current, {
-                opacity: Math.min(speedBoost / 400, 0.8),
+            if (exhaustRef.current) {
+              gsap.to(exhaustRef.current, {
+                opacity: Math.min(speedBoost / 500, 0.7),
                 duration: 0.2,
                 overwrite: "auto"
               });
@@ -280,6 +320,42 @@ export default function Home() {
         0
       );
 
+      if (progressRef.current) {
+        scrollTl.fromTo(progressRef.current,
+          { scaleX: 0 },
+          { scaleX: 1, ease: "none" },
+          0
+        );
+      }
+
+      if (gridRef.current) {
+        scrollTl.fromTo(gridRef.current,
+          { y: 0 },
+          { y: -40, ease: "none" },
+          0
+        );
+      }
+
+      if (decorSvgsRef.current) {
+        scrollTl.fromTo(decorSvgsRef.current,
+          { y: 0 },
+          { y: -80, ease: "none" },
+          0
+        );
+      }
+
+      if (statsRefs.current.length > 0) {
+        scrollTl.fromTo(statsRefs.current,
+          { y: 150, opacity: 0, scale: 0.8 }, // Start below the screen, invisible
+          {
+            y: 0, // End at original position
+            opacity: 1, // End fully visible
+            scale: 1,
+            ease: "none",
+            stagger: 0.1 // Stagger them slightly as they come in
+          }, 0
+        );
+      }
 
     }, containerRef);
 
@@ -316,6 +392,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (trailCanvasRef.current) {
+      const resize = () => {
+        if (!trailCanvasRef.current) return;
+        trailCanvasRef.current.width = trailCanvasRef.current.offsetWidth;
+        trailCanvasRef.current.height = trailCanvasRef.current.offsetHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+      return () => window.removeEventListener('resize', resize);
+    }
+  }, []);
+
+  useEffect(() => {
     let touchStartY = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -342,21 +431,26 @@ export default function Home() {
     <>
       <main className="bg-[#1A1A1A] font-sans selection:bg-[#FFD700] selection:text-black overflow-x-hidden">
 
-        <div ref={containerRef} className="h-screen w-full relative overflow-hidden">
+        <section ref={containerRef} className="h-screen w-full relative overflow-hidden">
 
           {/* ===================== NIGHT THEME (Bottom Base Layer) ===================== */}
           <div
             ref={nightAreaRef}
             onMouseMove={handleNightHover}
             className="absolute inset-0 z-0 overflow-hidden"
-            style={{ '--spotlight-x': '50%', '--spotlight-y': '50%' } as React.CSSProperties}
           >
+            <canvas
+              ref={trailCanvasRef}
+              className="absolute inset-0 w-full h-full pointer-events-none z-[3]"
+              style={{ mixBlendMode: 'screen' }}
+            />
             {/* Atmospheric Floating Particles */}
             <Particles />
 
             {/* Signature Grid Background (Dark Mode) - radial fade */}
             <div
-              className="absolute inset-0 pointer-events-none"
+              ref={gridRef}
+              className="absolute inset-0 pointer-events-none will-change-transform"
               style={{
                 backgroundImage: 'linear-gradient(#2A2A2A 1px, transparent 1px), linear-gradient(90deg, #2A2A2A 1px, transparent 1px)',
                 backgroundSize: '40px 40px',
@@ -373,49 +467,70 @@ export default function Home() {
               }}
             />
 
-            {/* Playful Decorative Background Elements (Dark Mode) */}
-            <div className="absolute top-[8%] left-[4%] opacity-[0.07] transform -rotate-12 pointer-events-none hidden md:block">
-              <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 50 C 30 10, 70 90, 90 50" stroke="#FFD700" strokeWidth="6" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div className="absolute bottom-[15%] right-[4%] opacity-[0.07] transform rotate-45 pointer-events-none">
-              <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="40" stroke="#FFD700" strokeWidth="6" strokeDasharray="12 8" />
-              </svg>
-            </div>
-            <div className="absolute top-[60%] left-[8%] opacity-[0.05] pointer-events-none hidden md:block">
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                <rect x="10" y="10" width="40" height="40" rx="8" stroke="#FFD700" strokeWidth="4" transform="rotate(15 30 30)" />
-              </svg>
-            </div>
-            <div className="absolute top-[15%] right-[12%] opacity-[0.05] pointer-events-none hidden lg:block">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <polygon points="20,2 38,38 2,38" stroke="#FFF" strokeWidth="3" fill="none" />
-              </svg>
+            <div ref={decorSvgsRef} className="will-change-transform">
+              <div className="absolute top-[8%] left-[4%] opacity-[0.07] transform -rotate-12 pointer-events-none hidden md:block">
+                <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 50 C 30 10, 70 90, 90 50" stroke="#FFD700" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="absolute bottom-[15%] right-[4%] opacity-[0.07] transform rotate-45 pointer-events-none">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="40" stroke="#FFD700" strokeWidth="6" strokeDasharray="12 8" />
+                </svg>
+              </div>
+              <div className="absolute top-[60%] left-[8%] opacity-[0.05] pointer-events-none hidden md:block">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                  <rect x="10" y="10" width="40" height="40" rx="8" stroke="#FFD700" strokeWidth="4" transform="rotate(15 30 30)" />
+                </svg>
+              </div>
+              <div className="absolute top-[15%] right-[12%] opacity-[0.05] pointer-events-none hidden lg:block">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <polygon points="20,2 38,38 2,38" stroke="#FFF" strokeWidth="3" fill="none" />
+                </svg>
+              </div>
             </div>
 
-            <div className="absolute top-[8%] md:top-[10%] left-0 w-full h-[35vh] md:h-[38vh] flex items-center justify-center pointer-events-none z-[2]">
+            <header className="absolute top-[8%] md:top-[10%] left-0 w-full h-[35vh] md:h-[38vh] flex items-center justify-center pointer-events-none z-[2]">
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-[300px] h-[300px] md:w-[700px] md:h-[700px] rounded-full bg-[#FFD700]/[0.04] blur-[80px] md:blur-[120px] pointer-events-none" />
               </div>
               <div className="w-full max-w-[1400px] px-4 md:px-8 flex flex-col items-center justify-center gap-2 md:gap-3">
                 <h1
                   ref={headlineRef}
-                  className="text-[clamp(1.2rem,min(7vw,8vh),10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest text-white uppercase opacity-0"
+                  className="text-[clamp(1.2rem,min(7vw,8vh),10rem)] md:text-[clamp(1.5rem,min(7vw,10vh),10rem)] leading-none font-black tracking-[0.1em] md:tracking-widest uppercase"
                   style={{
                     fontFamily: "'Montserrat', sans-serif",
-                    textShadow: '0 0 60px rgba(255,215,0,0.15), 0 0 120px rgba(255,215,0,0.05)'
+                    textShadow: '0 0 60px rgba(255,215,0,0.15), 0 0 120px rgba(255,215,0,0.05)',
+                    perspective: '600px'
                   }}
                 >
-                  WELCOME ITZFIZZ
+                  {"WELCOME ".split("").map((char, i) => (
+                    <span
+                      key={i}
+                      ref={(el) => { letterRefs.current[i] = el; }}
+                      className="inline-block text-white"
+                      style={{ opacity: 0 }}
+                    >
+                      {char === " " ? "\u00A0" : char}
+                    </span>
+                  ))}
+                  {"ITZFIZZ".split("").map((char, i) => (
+                    <span
+                      key={i + 8}
+                      ref={(el) => { letterRefs.current[i + 8] = el; }}
+                      className="inline-block text-white"
+                      style={{ opacity: 0 }}
+                    >
+                      {char}
+                    </span>
+                  ))}
                 </h1>
                 <p className="text-white/25 text-[8px] md:text-[10px] lg:text-xs tracking-[0.3em] md:tracking-[0.4em] uppercase font-medium">Scroll to explore · Arrow keys to drive</p>
               </div>
               <div className="absolute top-1/2 left-0 w-full h-[1px] -translate-y-1/2 -z-10">
                 <div className="w-full h-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
               </div>
-            </div>
+            </header>
           </div>
 
           {/* ===================== DAY THEME (Top Clipped Layer) ===================== */}
@@ -470,13 +585,13 @@ export default function Home() {
 
             <div className="absolute top-[8%] md:top-[10%] left-0 w-full h-[35vh] md:h-[38vh] flex items-center justify-center">
               <div className="w-full max-w-[1400px] relative h-full">
-                <SpeedLines speedLinesRef={speedLinesRef} />
                 <div
                   ref={carWrapperRef}
                   onClick={handleCarClick}
                   className="absolute top-1/2 -translate-y-1/2 pointer-events-auto flex items-center cursor-pointer will-change-transform"
                   style={{ left: 0 }}
                 >
+                  <ExhaustSmoke exhaustRef={exhaustRef} />
                   <div className="-translate-x-[40%] md:-translate-x-[50%]">
                     <CarSVG flameRef={flameRef} headlightRef={headlightRef} />
                   </div>
@@ -484,7 +599,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="absolute bottom-[16vh] md:bottom-[12vh] left-0 w-full z-30 pointer-events-none">
+            <nav className="absolute bottom-[16vh] md:bottom-[12vh] left-0 w-full z-30 pointer-events-none">
               <div className="container">
                 <div className="w-full max-w-[1200px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-4 lg:gap-5 px-3 md:px-4 pointer-events-auto">
                   {statsData.map((stat, index) => (
@@ -505,11 +620,11 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            </div>
+            </nav>
 
           </div>
 
-        </div>
+        </section>
       </main>
       <div ref={scrollPromptRef} className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center pointer-events-none">
         <span className="text-white/30 text-[9px] md:text-[10px] font-bold tracking-[0.3em] uppercase mb-1.5">Scroll</span>
@@ -518,6 +633,16 @@ export default function Home() {
           <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
         </div>
       </div>
+      <div
+        ref={progressRef}
+        className="fixed top-0 left-0 h-[3px] z-[100] pointer-events-none"
+        style={{
+          width: '100%',
+          transformOrigin: 'left center',
+          transform: 'scaleX(0)',
+          background: 'linear-gradient(90deg, #FFD700, #FFD700/80, transparent)'
+        }}
+      />
     </>
   );
 }
