@@ -221,23 +221,8 @@ export default function Home() {
       loadTl.to(carWrapperRef.current, { x: "-20vw", opacity: 1, duration: 1.5, ease: "power3.out" }, "-=0.5");
 
       loadTl.to(headlightRef.current, { opacity: 1, duration: 0.1, yoyo: true, repeat: 3 }, "-=0.2");
-      loadTl.to(headlightRef.current, { opacity: 0.8, duration: 0.3 });
+      loadTl.to(headlightRef.current, { opacity: 0, duration: 1.2, ease: "power2.in" }, "+=0.5");
 
-      statsRefs.current.forEach((el, i) => {
-        if (!el) return;
-        loadTl.fromTo(el,
-          { y: 150, opacity: 0, scale: 0.9 }, // Changed initial y position to be further down
-          { y: 150, opacity: 0, scale: 0.9, duration: 0 }, // We don't animate them in on load anymore, they wait for scroll
-          `-=${i === 0 ? 0.3 : 0.35}`
-        );
-      });
-
-      gsap.to(headlightRef.current, {
-        opacity: 0,
-        duration: 1.5,
-        delay: 2.2,
-        ease: "power2.in"
-      });
 
       const scrollTl = gsap.timeline({
         scrollTrigger: {
