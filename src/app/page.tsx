@@ -6,13 +6,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Custom SVG Car
 const CarSVG = ({ flameRef, headlightRef }: { flameRef: React.RefObject<SVGPathElement | null>, headlightRef: React.RefObject<SVGPathElement | null> }) => (
   <svg viewBox="0 0 320 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-[180px] md:w-[320px] lg:w-[400px]" style={{ overflow: "visible" }}>
-    {/* Soft Diffused Shadow */}
     <ellipse cx="160" cy="70" rx="140" ry="30" fill="#000" opacity="0.2" filter="blur(8px)" />
-
-    {/* Speed Lines (Hidden Initially) */}
     <path
       ref={flameRef}
       d="M-50 40 L0 40 M-30 60 L10 60 M-50 80 L0 80"
@@ -22,25 +18,15 @@ const CarSVG = ({ flameRef, headlightRef }: { flameRef: React.RefObject<SVGPathE
       opacity="0"
     />
 
-    {/* Primary Body Shell - Matte Black */}
     <path d="M30 25C30 25 60 10 160 10C240 10 270 25 285 40C300 55 300 65 285 80C270 95 240 110 160 110C60 110 30 95 30 95C10 75 10 45 30 25Z" fill="#1A1A1A" />
-
-    {/* White Side Trim */}
     <path d="M40 25C40 25 70 15 160 15C230 15 260 25 275 40" stroke="#FFF" strokeWidth="2" opacity="0.8" />
     <path d="M275 80C260 95 230 105 160 105C70 105 40 95 40 95" stroke="#FFF" strokeWidth="2" opacity="0.8" />
-
-    {/* Black Glass Canopy */}
     <path d="M120 30C140 25 180 25 200 30C220 40 220 80 200 90C180 95 140 95 120 90C90 80 90 40 120 30Z" fill="#000" />
-
-    {/* Yellow Accent Racing Stripe */}
     <rect x="150" y="55" width="100" height="10" rx="2" fill="#FFD700" />
 
-    {/* Headlights Group (Now controlled by Ref for ignition flash) */}
     <g ref={headlightRef} opacity="0" style={{ mixBlendMode: "screen" }}>
-      {/* Massive Beams cutting through the night */}
       <path d="M290 35 L600 -80 L600 55 L290 45 Z" fill="url(#headlightGlow)" />
       <path d="M290 75 L600 65 L600 200 L290 85 Z" fill="url(#headlightGlow)" />
-      {/* Bulbs */}
       <path d="M280 30 L300 35 L300 45 L285 40 Z" fill="#FFF" />
       <path d="M280 90 L300 85 L300 75 L285 80 Z" fill="#FFF" />
     </g>
@@ -117,7 +103,7 @@ const ExhaustSmoke = ({ exhaustRef }: { exhaustRef: React.RefObject<HTMLDivEleme
   </div>
 );
 
-// Floating Dust Particles for the Night Sky
+
 const Particles = () => {
   const [particles, setParticles] = useState<{ width: string, height: string, top: string, left: string, delay: string, duration: string, glow: boolean }[]>([]);
 
@@ -187,12 +173,10 @@ export default function Home() {
   const exhaustRef = useRef<HTMLDivElement>(null);
 
 
-  // Easter Egg 1: Press the gas pedal
+  // Interactive easter egg: clicking the car revs the engine
   const handleCarClick = () => {
     if (isRevvingRef.current || !carWrapperRef.current || !flameRef.current) return;
     isRevvingRef.current = true;
-
-    // Massive engine rev
     gsap.timeline({ onComplete: () => { isRevvingRef.current = false; } })
       .to(carWrapperRef.current, { y: -5, rotationZ: -2, duration: 0.1, yoyo: true, repeat: 5 })
       .to(flameRef.current, { opacity: 1, scaleX: 3, x: -60, duration: 0.1 }, 0)
@@ -328,13 +312,8 @@ export default function Home() {
       if (statsRefs.current.length > 0) {
         scrollTl.fromTo(statsRefs.current,
           { y: 150, opacity: 0, scale: 0.8 },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            ease: "power2.out",
-            stagger: 0.05
-          }, 0
+          { y: 0, opacity: 1, scale: 1, ease: "power2.out", stagger: 0.05 },
+          0
         );
       }
 
@@ -402,16 +381,9 @@ export default function Home() {
       <main className="bg-[#1A1A1A] font-sans selection:bg-[#FFD700] selection:text-black overflow-x-hidden">
 
         <section ref={containerRef} className="h-screen w-full relative overflow-hidden">
-
-          {/* ===================== NIGHT THEME (Bottom Base Layer) ===================== */}
-          <div
-            ref={nightAreaRef}
-            className="absolute inset-0 z-0 overflow-hidden"
-          >
-            {/* Atmospheric Floating Particles */}
+          {/* Night Theme Layer - Base */}
+          <div ref={nightAreaRef} className="absolute inset-0 z-0 overflow-hidden">
             <Particles />
-
-            {/* Signature Grid Background (Dark Mode) - radial fade */}
             <div
               ref={gridRef}
               className="absolute inset-0 pointer-events-none will-change-transform"
@@ -422,8 +394,6 @@ export default function Home() {
                 WebkitMask: 'radial-gradient(ellipse 80% 80% at 50% 40%, black 20%, transparent 100%)'
               }}
             />
-
-            {/* Cinematic Vignette */}
             <div
               className="absolute inset-0 pointer-events-none z-[1]"
               style={{
@@ -497,13 +467,13 @@ export default function Home() {
             </header>
           </div>
 
-          {/* ===================== DAY THEME (Top Clipped Layer) ===================== */}
+
+          {/* Day Theme Layer - Revealed on scroll */}
           <div
             ref={bandRef}
             className="absolute inset-0 z-10 bg-white overflow-hidden pointer-events-none"
             style={{ clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" }}
           >
-            {/* Signature Grid Background (Light Mode) */}
             <div
               className="absolute inset-0"
               style={{
@@ -512,7 +482,6 @@ export default function Home() {
               }}
             />
 
-            {/* Playful Decorative Background Elements (Light Mode) */}
             <div className="absolute top-[10%] left-[5%] opacity-20 transform -rotate-12">
               <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 50 C 30 10, 70 90, 90 50" stroke="#1A1A1A" strokeWidth="8" strokeLinecap="round" />
@@ -524,7 +493,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* The Track Line / Headline Area (Light Mode) */}
             <div className="absolute top-[8%] md:top-[10%] left-0 w-full h-[35vh] md:h-[38vh] flex items-center justify-center">
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-[300px] h-[300px] md:w-[600px] md:h-[600px] rounded-full bg-[#FFD700]/[0.06] blur-[80px] md:blur-[100px] pointer-events-none" />
@@ -544,7 +512,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ===================== FOREGROUND OVERLAYS (Car & Stats) ===================== */}
+          {/* Foreground elements */}
           <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
 
             <div className="absolute top-[8%] md:top-[10%] left-0 w-full h-[35vh] md:h-[38vh] flex items-center justify-center">
@@ -588,7 +556,6 @@ export default function Home() {
             </nav>
 
           </div>
-
         </section>
       </main>
       <div ref={scrollPromptRef} className="fixed bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center pointer-events-none">
