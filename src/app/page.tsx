@@ -199,7 +199,7 @@ export default function Home() {
       .to(flameRef.current, { opacity: 0, scaleX: 1, x: 0, duration: 0.5, ease: "power2.in" }, 0.4);
   };
 
-  const trailPointsRef = useRef<{ x: number; y: number }[]>([]);
+  const trailPointsRef = useRef<{ x: number; y: number; time: number }[]>([]);
   const trailSparklesRef = useRef<{ x: number; y: number; alpha: number; radius: number; vx: number; vy: number }[]>([]);
 
   const handleNightHover = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -208,7 +208,7 @@ export default function Home() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    trailPointsRef.current.push({ x, y });
+    trailPointsRef.current.push({ x, y, time: Date.now() });
     if (trailPointsRef.current.length > 40) trailPointsRef.current.shift();
 
     if (Math.random() < 0.35) {
@@ -415,6 +415,8 @@ export default function Home() {
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const now = Date.now();
+      trailPointsRef.current = trailPointsRef.current.filter(p => now - p.time < 600);
       const pts = trailPointsRef.current;
 
       if (pts.length >= 3) {
